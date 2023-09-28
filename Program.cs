@@ -63,7 +63,7 @@ internal static class Program
             DoAnotherAsyncOperation("Hello, ", "World")
         };
 
-         // Ждем выполнения всех задач
+        // Ждем выполнения всех задач
         await Task.WhenAll(tasks);
 
         // Извлекаем результаты выполнения операций
@@ -71,6 +71,47 @@ internal static class Program
 
         // Возвращаем результаты всех операций
         return results;
+    }
+
+    // 4. Для добавления возможности отмены выполнения асинхронного метода в определенный момент времени, можно использовать CancellationToken. 
+    // Для этого нужно передать CancellationToken в качестве параметра в метод, который выполняется асинхронно, и проверять его состояние внутри метода с помощью метода ThrowIfCancellationRequested. 
+
+    internal static async Task MyMethodAsync(CancellationToken cancellationToken)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        // дальнейшая логика метода
+
+
+        // Чтобы отменить выполнение метода, нужно вызвать метод Cancel у CancellationTokenSource, который был использован для создания CancellationToken.
+        var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await MyMethodAsync(cancellationTokenSource.Token);
+        // В этом примере выполнение метода MyMethodAsync будет остановлено, если он не закончится за 5 секунд.
+    }
+
+    internal static async Task TaskAsync()
+    {
+        try
+        {
+            //асинхронная операция
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+        catch (Exception ex)
+        {
+            //обработка исключения
+        }
+    }
+
+    // 6. Для ожидания выполнения первой из нескольких асинхронных операций и получения результата этой операции можно использовать метод Task.WhenAny.
+
+    internal static async Task MyMethodAsync1()
+    {
+        var task1 = Task.Delay(TimeSpan.FromSeconds(5));
+        var task2 = Task.Delay(TimeSpan.FromSeconds(10));
+        var completedTask = await Task.WhenAny(task1, task2);
+        
+        if (completedTask == task1) Console.WriteLine("Task1 - OK");
+        else if (completedTask == task2) Console.WriteLine("Task2 - OK");
     }
 }
 
